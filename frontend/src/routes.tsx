@@ -5,6 +5,7 @@ import CaixaPage from './pages/CaixaPage';
 import ProdutosPage from './pages/ProdutosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
 import ConfiguracoesPage from './pages/ConfiguracoesPage';
+import DashboardPage from './pages/DashBoardPage';
 
 export default function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ export default function AppRoutes() {
       <Route path="/produtos" element={<ProdutosPage />} />
       <Route path="/relatorios" element={<RelatoriosPage />} />
       <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+      <Route path="/home" element={<DashboardPage />} />
     </Routes>
   );
 }
