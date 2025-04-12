@@ -1,7 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function RelatoriosPage() {
-  const [vendas, setVendas] = useState([]);
+  type Venda = {
+    id: number;
+    total: number;
+    data: Date;
+    nome: string;
+    preco: number;
+    estoque: number;
+  };
+  const [vendas, setVendas] = useState<Venda[]>([]);
 
   useEffect(() => {
     fetch('http://localhost:3001/api/vendas')

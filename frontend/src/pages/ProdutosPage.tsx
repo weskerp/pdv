@@ -15,39 +15,37 @@ export default function ProdutosPage() {
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
-  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const [filtro, setFiltro] = useState('');
-  const [loading, setLoading] = useState(false);
+  // const [filtro, setFiltro] = useState('');
+  // const [loading, setLoading] = useState(false);
 
   const fetchProdutos = async () => {
     try {
-      if (filtro.trim() !== '') {
-        setLoading(true);
-        const res = await fetch(`http://localhost:3001/api/produtos?search=${encodeURIComponent(filtro)}`);
-        const data = await res.json();
-        setProdutos(data.produtos);
-        setHasMore(false);
-        setTotal(data.total || data.produtos.length);
-        setLoading(false);
-      } else {
-        setLoading(true);
+      // if (filtro.trim() !== '') {
+      //   // setLoading(true);
+      //   const res = await fetch(`http://localhost:3001/api/produtos?search=${encodeURIComponent(filtro)}`);
+      //   const data = await res.json();
+      //   setProdutos(data.produtos);
+      //   setTotal(data.total || data.produtos.length);
+      //   // setLoading(false);
+      // } else {
+        // setLoading(true);
         const res = await fetch(`http://localhost:3001/api/produtos?page=${page}&limit=${perPage}`);
         const data = await res.json();
         setProdutos(data.produtos);
-        setHasMore(data.hasMore);
         setTotal(data.total);
-        setLoading(false);
-      }
+        // setLoading(false);
+      // }
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProdutos();
-  }, [page, filtro, perPage]);
+  }, [page, perPage]);
+  // }, [page, filtro, perPage]);
 
   const handleSubmit = async () => {
     if (!nome || preco === '' || estoque === '') {
