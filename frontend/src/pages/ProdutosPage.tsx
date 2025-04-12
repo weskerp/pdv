@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ProdutosPage() {
   type Produto = {
@@ -89,22 +89,6 @@ export default function ProdutosPage() {
       await fetch(`http://localhost:3001/api/produtos/${id}`, { method: 'DELETE' });
       fetchProdutos();
     }
-  };
-
-  const adicionarAoCarrinho = (produto: Produto) => {
-    setCarrinho(prev => [...prev, produto]);
-  };
-
-  const finalizarVenda = () => {
-    const totalVenda = carrinho.reduce((acc, item) => acc + item.preco, 0);
-    fetch('http://localhost:3001/api/vendas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itens: carrinho, total: totalVenda }),
-    }).then(() => {
-      alert('Venda finalizada!');
-      setCarrinho([]);
-    });
   };
 
   const totalPages = Math.ceil(total / perPage);
