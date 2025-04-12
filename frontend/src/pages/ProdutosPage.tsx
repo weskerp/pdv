@@ -1,32 +1,53 @@
-import React, { useEffect, useState } from 'react';
-
-type Produto = {
-  id: number;
-  nome: string;
-  preco: number;
-  estoque: number;
-};
+import React, { useState, useEffect, useCallback } from 'react';
 
 export default function ProdutosPage() {
+  type Produto = {
+    id: number;
+    nome: string;
+    preco: number;
+    estoque: number;
+  };
+
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [nome, setNome] = useState('');
   const [preco, setPreco] = useState<number | string>('');
   const [estoque, setEstoque] = useState<number | string>('');
   const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [filtro, setFiltro] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const fetchProdutos = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/produtos');
-      const data = await res.json();
-      setProdutos(data);
+      if (filtro.trim() !== '') {
+        setLoading(true);
+        const res = await fetch(`http://localhost:3001/api/produtos?search=${encodeURIComponent(filtro)}`);
+        const data = await res.json();
+        setProdutos(data.produtos);
+        setHasMore(false);
+        setTotal(data.total || data.produtos.length);
+        setLoading(false);
+      } else {
+        setLoading(true);
+        const res = await fetch(`http://localhost:3001/api/produtos?page=${page}&limit=${perPage}`);
+        const data = await res.json();
+        setProdutos(data.produtos);
+        setHasMore(data.hasMore);
+        setTotal(data.total);
+        setLoading(false);
+      }
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProdutos();
-  }, []);
+  }, [page, filtro, perPage]);
 
   const handleSubmit = async () => {
     if (!nome || preco === '' || estoque === '') {
@@ -70,6 +91,98 @@ export default function ProdutosPage() {
     }
   };
 
+  const adicionarAoCarrinho = (produto: Produto) => {
+    setCarrinho(prev => [...prev, produto]);
+  };
+
+  const finalizarVenda = () => {
+    const totalVenda = carrinho.reduce((acc, item) => acc + item.preco, 0);
+    fetch('http://localhost:3001/api/vendas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itens: carrinho, total: totalVenda }),
+    }).then(() => {
+      alert('Venda finalizada!');
+      setCarrinho([]);
+    });
+  };
+
+  const totalPages = Math.ceil(total / perPage);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const renderPaginationButtons = () => {
+    const buttons = [];
+
+    buttons.push(
+      <button
+        key="prev"
+        onClick={() => handlePageChange(page - 1)}
+        disabled={page === 1}
+        className={`transition-colors text-white p-3 rounded-md font-medium mb-6 ${
+          page === 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+        }`}
+      >
+        Anterior
+      </button>
+    );
+
+    const startPage = Math.max(1, page - 3);
+    for (let p = startPage; p < page; p++) {
+      buttons.push(
+        <button
+          key={p}
+          onClick={() => handlePageChange(p)}
+          className="transition-colors bg-green-600 hover:bg-green-700 text-white p-3 rounded-md font-medium mb-6"
+        >
+          {p}
+        </button>
+      );
+    }
+
+    buttons.push(
+      <button
+        key={page}
+        disabled
+        className="transition-colors bg-blue-600 text-white p-3 rounded-md font-bold mb-6"
+      >
+        {page}
+      </button>
+    );
+
+    const endPage = Math.min(totalPages, page + 3);
+    for (let p = page + 1; p <= endPage; p++) {
+      buttons.push(
+        <button
+          key={p}
+          onClick={() => handlePageChange(p)}
+          className="transition-colors bg-green-600 hover:bg-green-700 text-white p-3 rounded-md font-medium mb-6"
+        >
+          {p}
+        </button>
+      );
+    }
+
+    buttons.push(
+      <button
+        key="next"
+        onClick={() => handlePageChange(page + 1)}
+        disabled={page === totalPages}
+        className={`transition-colors text-white p-3 rounded-md font-medium mb-6 ${
+          page === totalPages ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+        }`}
+      >
+        Próximo
+      </button>
+    );
+
+    return buttons;
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Gerenciar Produtos</h1>
@@ -104,8 +217,25 @@ export default function ProdutosPage() {
         {editandoId !== null ? 'Atualizar Produto' : 'Adicionar Produto'}
       </button>
 
+      <div className="mb-6">
+        <label className="mr-2 font-medium">Itens por página:</label>
+        <select
+          value={perPage}
+          onChange={e => {
+            setPerPage(Number(e.target.value));
+            setPage(1); // reinicia para a primeira página
+          }}
+          className="border rounded p-2"
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+        </select>
+      </div>
+
       <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
+        <table className="min-w-full border-collapse mb-6">
           <thead>
             <tr className="bg-gray-200">
               <th className="border p-3 text-left">Nome</th>
@@ -138,6 +268,14 @@ export default function ProdutosPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-wrap gap-2 justify-center">
+        {renderPaginationButtons()}
+      </div>
+
+      <div className="mt-4 text-center">
+        <p>Página {page} de {totalPages} ({total} itens)</p>
       </div>
     </div>
   );
