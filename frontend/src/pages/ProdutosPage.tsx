@@ -16,36 +16,31 @@ export default function ProdutosPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [total, setTotal] = useState(0);
-  // const [filtro, setFiltro] = useState('');
+  const [filtro, setFiltro] = useState('');
   // const [loading, setLoading] = useState(false);
 
   const fetchProdutos = async () => {
     try {
-      // if (filtro.trim() !== '') {
-      //   // setLoading(true);
-      //   const res = await fetch(`http://localhost:3001/api/produtos?search=${encodeURIComponent(filtro)}`);
-      //   const data = await res.json();
-      //   setProdutos(data.produtos);
-      //   setTotal(data.total || data.produtos.length);
-      //   // setLoading(false);
-      // } else {
-        // setLoading(true);
+      if (filtro.trim() !== '') {
+        const res = await fetch(`http://localhost:3001/api/produtos?search=${encodeURIComponent(filtro)}&page=${page}&limit=${perPage}`);
+        const data = await res.json();
+        setProdutos(data.produtos);
+        setTotal(data.total || data.produtos.length);
+      } else {
         const res = await fetch(`http://localhost:3001/api/produtos?page=${page}&limit=${perPage}`);
         const data = await res.json();
         setProdutos(data.produtos);
         setTotal(data.total);
-        // setLoading(false);
-      // }
+      }
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);
-      // setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProdutos();
-  }, [page, perPage]);
-  // }, [page, filtro, perPage]);
+  // }, [page, perPage]);
+  }, [page, filtro, perPage]);
 
   const handleSubmit = async () => {
     if (!nome || preco === '' || estoque === '') {
@@ -217,6 +212,13 @@ export default function ProdutosPage() {
       </div>
 
       <div className="overflow-x-auto">
+      <input
+            type="text"
+            placeholder="Buscar produto..."
+            value={filtro}
+            onChange={e => setFiltro(e.target.value)}
+            className="w-full border rounded px-2 py-1 mb-4"
+          />
         <table className="min-w-full border-collapse mb-6">
           <thead>
             <tr className="bg-gray-200">

@@ -42,7 +42,7 @@ export default function CaixaPage() {
     if (filtro.length > 0){
 
     setLoading(true);
-    fetch(`http://localhost:3001/api/produtos?search=${filtro}`)
+    fetch(`http://localhost:3001/api/produtos?search=${filtro}&infinit=1`)
       .then(res => res.json())
       .then(data => {
         setProdutos(data.produtos);
